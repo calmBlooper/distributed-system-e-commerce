@@ -21,5 +21,4 @@ else
     sleep 5s
     docker exec -it $CONTAINER_NAME bash -c 'sleep 5s; echo "db.users.insertOne({ uuid: \"00000000-0000-0000-0000-000000000001\", email: \"john@example.com\", name: \"John Doe\", role: \"Buyer\", password: \"password123\" }); " | mongosh'
     docker exec -it $CONTAINER_NAME bash -c 'sleep 5s; echo "db.users.find()" | mongosh'
-    docker exec -it $CONTAINER_NAME bash -c 'sleep 5s; echo "exit; " | mongosh'
 fi

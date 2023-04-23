@@ -19,6 +19,5 @@ else
     # If container doesn't exist, create it and set up the required document
     docker run --name $CONTAINER_NAME -p $PORT_NUMBER:$PORT_NUMBER -v $VOLUME_NAME:/data/db -d mongo
     sleep 5s
-    docker exec -it $CONTAINER_NAME bash -c 'sleep 5s; echo "db.users.insertOne({ uuid: \"00000000-0000-0000-0000-000000000001\", email: \"john@example.com\", name: \"John Doe\", role: \"Buyer\", password: \"password123\" }); " | mongosh'
-    docker exec -it $CONTAINER_NAME bash -c 'sleep 5s; echo "db.users.find()" | mongosh'
+
 fi

@@ -1,7 +1,20 @@
-import mongoose, {Schema, model, connect, ConnectOptions, Model} from 'mongoose';
+import mongoose, {Schema, model, ConnectOptions, Model, Types} from 'mongoose';
+
+const MONGO_IP = "localhost";
+const MONGO_PORT = "27017";
+const MONGO_DB = "auth";
+
+const mongoUri = `mongodb://${MONGO_IP}:${MONGO_PORT}/${MONGO_DB}`;
+
+mongoose.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true} as ConnectOptions).then(()=>{
+    console.log("mongodb is connected");
+}).catch((error)=>{
+    console.log("mongodb not connected");
+    console.log(error);
+});
 
 export interface UserDocument extends Document {
-    _id: string;
+    _id: Types.ObjectId;
     name?: string;
     email: string;
     password: string;

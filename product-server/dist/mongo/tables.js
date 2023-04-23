@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.User = void 0;
+exports.Product = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const MONGO_IP = "localhost";
 const MONGO_PORT = "27017";
@@ -35,26 +35,22 @@ mongoose_1.default.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology
     console.log("mongodb not connected");
     console.log(error);
 });
+var Category;
+(function (Category) {
+    Category["House"] = "House";
+    Category["Food"] = "Food";
+})(Category || (Category = {}));
 ;
 ;
-const userSchema = new mongoose_1.Schema({
+const productSchema = new mongoose_1.Schema({
     name: {
-        type: String
+        type: String,
+        required: true
     },
-    password: {
+    category: {
         type: String,
         required: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    role: {
-        type: String,
-        enum: ['admin', 'user', 'seller'],
-        default: 'user',
     }
 });
-exports.User = (0, mongoose_1.model)('User', userSchema);
-//# sourceMappingURL=user-table.js.map
+exports.Product = (0, mongoose_1.model)('Product', productSchema);
+//# sourceMappingURL=tables.js.map

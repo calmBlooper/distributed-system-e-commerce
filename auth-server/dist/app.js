@@ -17,17 +17,7 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const user_table_1 = require("./mongo/user-table");
-const mongoose_1 = __importDefault(require("mongoose"));
-const MONGO_IP = "localhost";
-const MONGO_PORT = "27017";
-const MONGO_DB = "auth";
-const mongoUri = `mongodb://${MONGO_IP}:${MONGO_PORT}/${MONGO_DB}`;
-mongoose_1.default.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
-    console.log("mongodb is connected");
-}).catch((error) => {
-    console.log("mongodb not connected");
-    console.log(error);
-});
+const JWT_SECRET = "secretkey";
 const app = (0, express_1.default)();
 // use bodyParser middleware to parse request body
 app.use(body_parser_1.default.json());
@@ -37,6 +27,8 @@ app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const { email, password, name, role } = req.body;
         // hash password
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+        if (role === 'admin')
+            return res.status(403).json({ message: 'Forbidden' });
         // create new user
         const user = new user_table_1.User({
             name: name,
@@ -47,7 +39,7 @@ app.post('/register', (req, res) => __awaiter(void 0, void 0, void 0, function* 
         // save user to database
         yield user.save();
         // generate JWT token
-        const token = jsonwebtoken_1.default.sign({ userId: user._id, role: user.role }, 'mysecretkey');
+        const token = jsonwebtoken_1.default.sign({ userId: user._id, role: user.role }, JWT_SECRET);
         // send token to client
         return res.json({ token });
     }
@@ -71,7 +63,7 @@ app.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.status(400).json({ message: 'Invalid credentials' });
         }
         // generate JWT token
-        const token = jsonwebtoken_1.default.sign({ userId: user._id, role: user.role }, 'mysecretkey');
+        const token = jsonwebtoken_1.default.sign({ userId: user._id, role: user.role }, JWT_SECRET);
         // send token to client
         return res.json({ token });
     }
@@ -91,7 +83,7 @@ function authenticateToken(req, res, next) {
     if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
-    jsonwebtoken_1.default.verify(token, 'mysecretkey', (error, user) => {
+    jsonwebtoken_1.default.verify(token, JWT_SECRET, (error, user) => {
         if (error) {
             return res.status(401).json({ message: 'Unauthorized' });
         }

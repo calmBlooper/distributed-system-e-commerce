@@ -2,22 +2,10 @@ import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import {User, UserDocument} from "./mongo/user-table";
-import mongoose, {ConnectOptions} from "mongoose";
+import {User, UserDocument} from "./mongo/tables";
 
 const JWT_SECRET = "secretkey";
-const MONGO_IP = "localhost";
-const MONGO_PORT = "27017";
-const MONGO_DB = "auth";
 
-const mongoUri = `mongodb://${MONGO_IP}:${MONGO_PORT}/${MONGO_DB}`;
-
-mongoose.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true} as ConnectOptions).then(()=>{
-  console.log("mongodb is connected");
-}).catch((error)=>{
-  console.log("mongodb not connected");
-  console.log(error);
-});
 
 const app = express();
 

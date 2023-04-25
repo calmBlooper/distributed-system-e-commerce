@@ -27,7 +27,7 @@ exports.Product = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const MONGO_IP = "localhost";
 const MONGO_PORT = "27017";
-const MONGO_DB = "auth";
+const MONGO_DB = "product";
 const mongoUri = `mongodb://${MONGO_IP}:${MONGO_PORT}/${MONGO_DB}`;
 mongoose_1.default.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
     console.log("mongodb is connected");
@@ -39,6 +39,11 @@ var Category;
 (function (Category) {
     Category["House"] = "House";
     Category["Food"] = "Food";
+    Category["Sport"] = "Sport";
+    Category["Jewelry"] = "Jewelry";
+    Category["Electronics"] = "Electronics";
+    Category["Clothing"] = "Clothing";
+    Category["Books"] = "Electronics";
 })(Category || (Category = {}));
 ;
 ;
@@ -49,7 +54,24 @@ const productSchema = new mongoose_1.Schema({
     },
     category: {
         type: String,
+        enum: Object.keys(Category)
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    quantity: {
+        type: Number,
+        required: true
+    },
+    seller: {
+        type: String,
+        required: true
+    },
+    archive: {
+        type: Boolean,
         required: true,
+        default: false
     }
 });
 exports.Product = (0, mongoose_1.model)('Product', productSchema);

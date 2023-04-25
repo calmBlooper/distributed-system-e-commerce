@@ -1,8 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
-import {Receipt, ReceiptDocument} from "./mongo/tables";
-import {ShoppingCart} from "./redis/redis";
+import {Receipt, ReceiptDocument, ReceiptItem} from "./mongo/tables";
+import {ShoppingCart, CartItem} from "./redis/redis";
 
 const JWT_SECRET = "secretkey";
 
@@ -11,9 +11,52 @@ const cart = new ShoppingCart();
 
 app.use(bodyParser.json());
 
-app.get('/protected', authenticateToken, (req: Request, res: Response) => {
-  return res.json({ message: 'This is a protected endpoint' });
+app.post('/cart-buy', authenticateToken, authenticateUser, async (req: any, res: Response) => {
+  const {userId} = req.user;
+  const userCart = await cart.getCartItems(userId);
+  if (userCart.length === 0) {
+    return res.status(404).json({ message: 'No items in cart' });
+  }
+
+  //pay here
+
+  try {
+
+    const receipt = new Receipt({
+      user: userId,
+      date: Date.now(),
+      items: userCart.map((x) => {
+        const item: ReceiptItem = {
+          price: x.price,
+          quantity: x.quantity,
+          product: x.productId
+        }
+        return item;
+      })
+    });
+
+    await receipt.save();
+
+    await cart.clearCart(userId);
+
+    return res.json({ id: receipt._id });
+  } catch (err){
+    console.log(err)
+    return res.status(500).json();
+  }
 });
+
+app.get('/receipts', authenticateToken, authenticateUser, async (req: any, res: Response) => {
+  const {userId} = req.user;
+  const receipts: NonNullable<ReceiptDocument>[] = await Receipt.find({ user: userId });
+
+  return res.json(receipts);
+});
+
+function authenticateUser(req: any, res: Response, next: NextFunction) {
+  if (req.user.role !== 'user') return res.status(403).json({ message: 'Must be user' });
+  next();
+}
 
 function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -33,6 +76,6 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   });
 }
 
-app.listen(3000, () => {
-  console.log('Server listening on port 3000');
+app.listen(3024, () => {
+  console.log('Server listening on port 3024');
 });

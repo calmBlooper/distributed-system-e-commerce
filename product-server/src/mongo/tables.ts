@@ -30,7 +30,8 @@ export interface ProductDocument extends Document {
     category: Category;
     price: number;
     quantity: number;
-    seller: Types.ObjectId;
+    seller: String;
+    archive: boolean;
 };
 
 interface ProductModel extends Model<ProductDocument> {};
@@ -41,20 +42,25 @@ const productSchema = new Schema<ProductDocument, ProductModel>({
         required: true
     },
     category: {
-        type: Object.keys(Category),
-        required: true,
+        type: String,
+        enum: Object.keys(Category)
     },
     price: {
         type: Number,
-        required: true,
+        required: true
     },
     quantity: {
         type: Number,
-        required: true,
+        required: true
     },
     seller: {
         type: String,
+        required: true
+    },
+    archive: {
+        type: Boolean,
         required: true,
+        default: false
     }
 });
 

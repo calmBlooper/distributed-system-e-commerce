@@ -16,12 +16,12 @@ mongoose.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true} as 
 export interface ReceiptItem{
     price: number;
     quantity: number;
-    product: Types.ObjectId;
+    product: string;
 }
 
 export interface ReceiptDocument extends Document {
     _id: Types.ObjectId;
-    user: Types.ObjectId;
+    user: string;
     date: Date;
     items: ReceiptItem[];
 };
@@ -30,21 +30,20 @@ interface ReceiptModel extends Model<ReceiptDocument> {};
 
 const receiptSchema = new Schema<ReceiptDocument, ReceiptModel>({
     user: {
-        type: Types.ObjectId,
+        type: String,
         required: true
     },
     date: {
         type: Date,
         required: true,
     },
-    items: {
+    items: [{
         type: {
             price: { type: Number, required: true },
             quantity: { type: Number, required: true },
-            product: { type: Types.ObjectId, required: true },
-        },
-        required: true,
-    }
+            product: { type: String, required: true },
+        }
+    }]
 });
 
 export const Receipt = model('Receipt', receiptSchema);

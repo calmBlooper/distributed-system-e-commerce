@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -6,21 +15,83 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const tables_1 = require("./mongo/tables");
+const redis_1 = require("./redis/redis");
 const JWT_SECRET = "secretkey";
-var Category;
-(function (Category) {
-    Category["House"] = "House";
-    Category["Food"] = "Food";
-})(Category || (Category = {}));
-console.log(Object.keys(Category));
 const app = (0, express_1.default)();
-// use bodyParser middleware to parse request body
+const cart = new redis_1.ShoppingCart();
 app.use(body_parser_1.default.json());
-// dummy protected endpoint
-app.get('/protected', authenticateToken, (req, res) => {
-    return res.json({ message: 'This is a protected endpoint' });
-});
-// middleware to authenticate JWT token
+app.post('/product', authenticateToken, authenticateSeller, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, category, price, quantity } = req.body;
+    try {
+        const product = new tables_1.Product({
+            name: name,
+            category: category,
+            price: price,
+            quantity: quantity,
+            seller: req.user.userId
+        });
+        yield product.save();
+        return res.json({ id: product._id });
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).json();
+    }
+}));
+app.delete('/product/:id', authenticateToken, authenticateSeller, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.user;
+    yield tables_1.Product.findOneAndUpdate({ _id: req.params.id, seller: userId }, { archive: true });
+    return res.status(200).json({ msg: 'Product archived' });
+}));
+app.get('/product/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const product = yield tables_1.Product.findOne({ _id: req.params.id });
+    return res.json({ name: product.name,
+        category: product.category,
+        price: product.price,
+        quantity: product.quantity,
+        seller: product.seller,
+        archive: product.archive,
+    });
+}));
+app.post('/cart', authenticateToken, authenticateUser, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.user;
+    const { productId, quantity } = req.body;
+    const product = yield tables_1.Product.findOne({ _id: productId });
+    if (quantity > product.quantity) {
+        return res.status(404).json({ msg: 'Quantity too large' });
+    }
+    if (product.archive) {
+        return res.status(404).json({ msg: 'Product is archived' });
+    }
+    const cartItem = {
+        productId: productId,
+        quantity: quantity,
+        price: product.price
+    };
+    yield cart.addItemToCart(userId, cartItem);
+    return res.status(200).json();
+}));
+app.get('/cart', authenticateToken, authenticateUser, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.user;
+    const userCart = yield cart.getCartItems(userId);
+    return res.status(200).json(userCart);
+}));
+app.delete('/cart', authenticateToken, authenticateUser, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.user;
+    yield cart.clearCart(userId);
+    return res.status(200).json({ msg: "Cart deleted" });
+}));
+function authenticateSeller(req, res, next) {
+    if (req.user.role !== 'seller')
+        return res.status(403).json({ message: 'Must be seller' });
+    next();
+}
+function authenticateUser(req, res, next) {
+    if (req.user.role !== 'user')
+        return res.status(403).json({ message: 'Must be user' });
+    next();
+}
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -35,8 +106,7 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
-// start server
-app.listen(3000, () => {
-    console.log('Server listening on port 3000');
+app.listen(3023, () => {
+    console.log('Server listening on port 3023');
 });
 //# sourceMappingURL=app.js.map

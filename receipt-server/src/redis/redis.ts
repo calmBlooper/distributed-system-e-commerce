@@ -1,13 +1,13 @@
 import Redis from 'ioredis';
 
-interface CartItem {
+export interface CartItem {
     productId: string;
     quantity: number;
     price: number;
 }
 
 export class ShoppingCart {
-    private client: Redis.Redis;
+    private client: Redis;
 
     constructor() {
         this.client = new Redis({
@@ -46,7 +46,7 @@ export class ShoppingCart {
         const data = await this.client.hget(cartId, 'items');
 
         if (!data) {
-            return null;
+            return [];
         }
 
         return JSON.parse(data);

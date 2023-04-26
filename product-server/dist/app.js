@@ -45,6 +45,7 @@ app.delete('/product/:id', authenticateToken, authenticateSeller, (req, res) => 
     return res.status(200).json({ msg: 'Product archived' });
 }));
 app.get('/product/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("REQUEST");
     const product = yield tables_1.Product.findOne({ _id: req.params.id });
     return res.json({ name: product.name,
         category: product.category,
@@ -106,7 +107,8 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
-app.listen(3023, () => {
-    console.log('Server listening on port 3023');
+const port = 3010;
+app.listen(port, () => {
+    console.log(`Server listening on port ${port}`);
 });
 //# sourceMappingURL=app.js.map

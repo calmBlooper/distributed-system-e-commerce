@@ -39,6 +39,7 @@ app.delete('/product/:id', authenticateToken, authenticateSeller, async (req: an
 });
 
 app.get('/product/:id', async (req: Request, res: Response) => {
+  console.log("REQUEST")
   const product: NonNullable<ProductDocument> = await Product.findOne({ _id: req.params.id });
 
   return res.json(
@@ -115,6 +116,8 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   });
 }
 
-app.listen(3023, () => {
-  console.log('Server listening on port 3023');
+const port = 3010;
+
+app.listen(port, () => {
+  console.log(`Server listening on port ${port}`);
 });

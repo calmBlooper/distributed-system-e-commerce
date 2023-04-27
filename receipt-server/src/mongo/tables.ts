@@ -1,10 +1,18 @@
 import mongoose, {Schema, model, ConnectOptions, Model, Types} from 'mongoose';
 
-const MONGO_IP = "localhost";
-const MONGO_PORT = "27017";
 const MONGO_DB = "receipt";
+const REPLICASET_NAME = "receiptReplicaSet";
+const MONGO_NODES_MAP = new Map([
+    ['receipt_1', '9052'],
+    ['receipt_2', '9152'],
+    ['receipt_3', '9252'],
+]);
 
-const mongoUri = `mongodb://${MONGO_IP}:${MONGO_PORT}/${MONGO_DB}`;
+const MONGO_ADDRESSES = Array.from(MONGO_NODES_MAP)
+    .map(([key, value]) => `${key}:${value}`)
+    .join(',');
+
+const mongoUri =`mongodb://${MONGO_ADDRESSES}/${MONGO_DB}?replicaSet=${REPLICASET_NAME}&readPreference=secondaryPreferred`
 
 mongoose.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true} as ConnectOptions).then(()=>{
     console.log("mongodb is connected");

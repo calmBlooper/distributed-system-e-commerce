@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import {Receipt, ReceiptDocument, ReceiptItem} from "./mongo/tables";
 import {ShoppingCart, CartItem} from "./redis/redis";
+import 'express-async-errors';
 
 const JWT_SECRET = "secretkey";
 
@@ -20,30 +21,24 @@ app.post('/cart-buy', authenticateToken, authenticateUser, async (req: any, res:
 
   //pay here
 
-  try {
+  const receipt = new Receipt({
+    user: userId,
+    date: Date.now(),
+    items: userCart.map((x) => {
+      const item: ReceiptItem = {
+        price: x.price,
+        quantity: x.quantity,
+        product: x.productId
+      }
+      return item;
+    })
+  });
 
-    const receipt = new Receipt({
-      user: userId,
-      date: Date.now(),
-      items: userCart.map((x) => {
-        const item: ReceiptItem = {
-          price: x.price,
-          quantity: x.quantity,
-          product: x.productId
-        }
-        return item;
-      })
-    });
+  await receipt.save();
 
-    await receipt.save();
+  await cart.clearCart(userId);
 
-    await cart.clearCart(userId);
-
-    return res.json({ id: receipt._id });
-  } catch (err){
-    console.log(err)
-    return res.status(500).json();
-  }
+  return res.json({ id: receipt._id });
 });
 
 app.get('/receipts', authenticateToken, authenticateUser, async (req: any, res: Response) => {
@@ -75,6 +70,11 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     next();
   });
 }
+
+app.use((err: any, req: any, res, next) => {
+  // console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 const port = 3020;
 

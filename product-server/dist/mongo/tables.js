@@ -36,24 +36,6 @@ const MONGO_ADDRESSES = Array.from(MONGO_NODES_MAP)
     .map(([key, value]) => `${key}:${value}`)
     .join(',');
 const mongoUri = `mongodb://${MONGO_ADDRESSES}/${MONGO_DB}?replicaSet=${REPLICASET_NAME}&readPreference=secondaryPreferred`;
-const dbOptions = {
-    db: { native_parser: true },
-    replset: {
-        auto_reconnect: false,
-        poolSize: 10,
-        socketOptions: {
-            keepAlive: 1000,
-            connectTimeoutMS: 30000
-        }
-    },
-    server: {
-        poolSize: 5,
-        socketOptions: {
-            keepAlive: 1000,
-            connectTimeoutMS: 30000
-        }
-    }
-};
 mongoose_1.default.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true }).then(() => {
     console.log("mongodb is connected");
 }).catch((error) => {

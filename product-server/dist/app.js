@@ -17,27 +17,22 @@ const body_parser_1 = __importDefault(require("body-parser"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const tables_1 = require("./mongo/tables");
 const redis_1 = require("./redis/redis");
+require("express-async-errors");
 const JWT_SECRET = "secretkey";
 const app = (0, express_1.default)();
 const cart = new redis_1.ShoppingCart();
 app.use(body_parser_1.default.json());
 app.post('/product', authenticateToken, authenticateSeller, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, category, price, quantity } = req.body;
-    try {
-        const product = new tables_1.Product({
-            name: name,
-            category: category,
-            price: price,
-            quantity: quantity,
-            seller: req.user.userId
-        });
-        yield product.save();
-        return res.json({ id: product._id });
-    }
-    catch (err) {
-        console.log(err);
-        return res.status(500).json();
-    }
+    const product = new tables_1.Product({
+        name: name,
+        category: category,
+        price: price,
+        quantity: quantity,
+        seller: req.user.userId
+    });
+    yield product.save();
+    return res.json({ id: product._id });
 }));
 app.delete('/product/:id', authenticateToken, authenticateSeller, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { userId } = req.user;
@@ -45,7 +40,6 @@ app.delete('/product/:id', authenticateToken, authenticateSeller, (req, res) => 
     return res.status(200).json({ msg: 'Product archived' });
 }));
 app.get('/product/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("REQUEST");
     const product = yield tables_1.Product.findOne({ _id: req.params.id });
     return res.json({ name: product.name,
         category: product.category,
@@ -107,6 +101,10 @@ function authenticateToken(req, res, next) {
         next();
     });
 }
+app.use((err, req, res, next) => {
+    // console.error(err.stack);
+    res.status(500).json({ error: 'Internal server error' });
+});
 const port = 3010;
 app.listen(port, () => {
     console.log(`Server listening on port ${port}`);

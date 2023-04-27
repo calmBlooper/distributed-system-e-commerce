@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import jwt from 'jsonwebtoken';
 import {Product, ProductDocument} from "./mongo/tables";
 import {ShoppingCart, CartItem} from "./redis/redis";
+import 'express-async-errors';
 
 const JWT_SECRET = "secretkey";
 
@@ -10,25 +11,19 @@ const app = express();
 const cart = new ShoppingCart();
 app.use(bodyParser.json());
 
-
 app.post('/product', authenticateToken, authenticateSeller, async (req: any, res: Response) => {
   const {name, category, price, quantity} = req.body;
-  try {
-    const product = new Product({
-      name: name,
-      category: category,
-      price: price,
-      quantity: quantity,
-      seller: req.user.userId
-    });
-    await product.save();
+  const product = new Product({
+    name: name,
+    category: category,
+    price: price,
+    quantity: quantity,
+    seller: req.user.userId
+  });
+  await product.save();
 
 
-    return res.json({ id: product._id });
-  } catch (err){
-    console.log(err)
-    return res.status(500).json();
-  }
+  return res.json({ id: product._id });
 });
 
 app.delete('/product/:id', authenticateToken, authenticateSeller, async (req: any, res: Response) => {
@@ -39,7 +34,6 @@ app.delete('/product/:id', authenticateToken, authenticateSeller, async (req: an
 });
 
 app.get('/product/:id', async (req: Request, res: Response) => {
-  console.log("REQUEST")
   const product: NonNullable<ProductDocument> = await Product.findOne({ _id: req.params.id });
 
   return res.json(
@@ -115,6 +109,11 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     next();
   });
 }
+
+app.use((err: any, req: any, res, next) => {
+  // console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 const port = 3010;
 

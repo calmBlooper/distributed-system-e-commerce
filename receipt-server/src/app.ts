@@ -76,7 +76,7 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
   });
 }
 
-const port = 3010;
+const port = 3020;
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

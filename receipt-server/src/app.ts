@@ -76,7 +76,7 @@ app.use((err: any, req: any, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const port = 3020;
+const port = process.argv[2];
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

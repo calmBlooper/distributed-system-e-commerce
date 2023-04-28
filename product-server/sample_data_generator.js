@@ -10,7 +10,7 @@ const categories = [
     'Books'
 ];
 
-function createProducts(userNumber) {
+function createProducts(userNumber,amount) {
     const body = {
         email: `user${userNumber}@example.com`,
         password: `password${userNumber}`
@@ -23,7 +23,7 @@ function createProducts(userNumber) {
             const token = response.data.token;
 
             // Create 10 products
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < amount; i++) {
                 const name = `Product ${i}`;
                 const category = categories[Math.floor(Math.random() * categories.length)];
                 const price = Math.floor(Math.random() * 100) + 1;
@@ -204,4 +204,4 @@ function deleteCart() {
 // getCart()
 // deleteCart()
 
-createProducts(0)
+createProducts(0,10)

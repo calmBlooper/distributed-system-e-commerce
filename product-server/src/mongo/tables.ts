@@ -2,20 +2,17 @@ import mongoose, {Schema, model, ConnectOptions, Model, Types} from 'mongoose';
 
 
 const MONGO_DB = "product";
-const REPLICASET_NAME = "productReplicaSet";
-const MONGO_NODES_MAP = new Map([
-    ['product_1', '9042'],
-    ['product_2', '9142'],
-    ['product_3', '9242'],
-]);
 
-const MONGO_ADDRESSES = Array.from(MONGO_NODES_MAP)
-    .map(([key, value]) => `${key}:${value}`)
+
+const shards = ["127.0.0.1:27117","127.0.0.1:27118"]
+
+
+const MONGO_ADDRESSES = shards
     .join(',');
 
 
 
-const mongoUri =`mongodb://${MONGO_ADDRESSES}/${MONGO_DB}?replicaSet=${REPLICASET_NAME}&readPreference=secondaryPreferred`
+const mongoUri =`mongodb://${MONGO_ADDRESSES}/${MONGO_DB}?readPreference=secondaryPreferred`
 
 mongoose.connect(mongoUri, {useNewUrlParser: true, useUnifiedTopology: true} as ConnectOptions).then(()=>{
     console.log("mongodb is connected");
